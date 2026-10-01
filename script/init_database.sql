@@ -3,40 +3,43 @@
 Create Database and Schemas
 =============================================================
 Script Purpose:
-    This script creates a new database named 'DataWarehouse' after checking if it already exists. 
-    If the database exists, it is dropped and recreated. Additionally, the script sets up three schemas 
-    within the database: 'bronze', 'silver', and 'gold'.
-	
+    This script creates a new database named 'datawarehouse'.
+    If the database exists, it is dropped and recreated. Additionally,
+    the script sets up three schemas within the database:
+    'bronze', 'silver', and 'gold'.
+
 WARNING:
-    Running this script will drop the entire 'DataWarehouse' database if it exists. 
-    All data in the database will be permanently deleted. Proceed with caution 
-    and ensure you have proper backups before running this script.
+    Running this script will drop the entire 'datawarehouse' database
+    if it exists. All data in the database will be permanently deleted.
+    Proceed with caution and ensure you have proper backups.
+
+Usage (psql):
+    Part 1 is run while connected to the 'postgres' database.
+    Part 2 is run after connecting to the 'datawarehouse' database.
 */
 
-USE master;
-GO
+-- =============================================================
+-- PART 1: Run while connected to the 'postgres' database
+-- =============================================================
 
--- Drop and recreate the 'DataWarehouse' database
-IF EXISTS (SELECT 1 FROM sys.databases WHERE name = 'DataWarehouse')
-BEGIN
-    ALTER DATABASE DataWarehouse SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE DataWarehouse;
-END;
-GO
+-- Terminate all active connections to the target database
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = 'datawarehouse'
+  AND pid <> pg_backend_pid();
 
--- Create the 'DataWarehouse' database
-CREATE DATABASE DataWarehouse;
-GO
+-- Drop and recreate the database
+DROP DATABASE IF EXISTS datawarehouse;
+CREATE DATABASE datawarehouse;
 
-USE DataWarehouse;
-GO
+-- Switch connection to the new database (psql meta-command)
+\c datawarehouse
+
+-- =============================================================
+-- PART 2: Run while connected to 'datawarehouse'
+-- =============================================================
 
 -- Create Schemas
-CREATE SCHEMA bronze;
-GO
-
-CREATE SCHEMA silver;
-GO
-
-CREATE SCHEMA gold;
-GO
+CREATE SCHEMA IF NOT EXISTS bronze;
+CREATE SCHEMA IF NOT EXISTS silver;
+CREATE SCHEMA IF NOT EXISTS gold;
